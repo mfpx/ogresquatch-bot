@@ -27,8 +27,8 @@ else:
     with open("config.json") as file:
         config = json.load(file)
 
-con = sqlite3.connect('db.db') #open the database
-cur = con.cursor() #cursor object for the db
+con = sqlite3.connect('db.db')  # open the database
+cur = con.cursor()  # cursor object for the db
 
 for row in cur.execute('select * from systemconfig'):
     selectedtz = timezone(row[0])
@@ -36,6 +36,7 @@ for row in cur.execute('select * from systemconfig'):
 fmt = '%Y-%m-%d %H:%M:%S %Z%z'
 timef = '%H:%M:%S'
 datef = '%Y-%m-%d'
+
 
 class scheduler(commands.Cog, name="scheduler"):
     def __init__(self, bot):
@@ -99,20 +100,21 @@ class scheduler(commands.Cog, name="scheduler"):
         elif not args[2][2] == ':':
             await ctx.send("Time is incorrectly formatted! Format is **HH:MM** in 24hr format! {}".format(ctx.message.author.mention))
         else:
-            strdate = args[1].replace('/','')
-            strtime = args[2].replace(':','')
+            strdate = args[1].replace('/', '')
+            strtime = args[2].replace(':', '')
             if args[0].lower() == 'all':
                 await ctx.send("Yikes... **ALL** is a reserved keyword, soz :sweat_smile:")
             else:
                 try:
-                    cur.execute('insert into sessions values (?, ?, ?)', (args[0],strdate,strtime))
-                    await ctx.send("Scheduled {} on {} at {}".format(args[0],args[1],args[2]))
+                    cur.execute('insert into sessions values (?, ?, ?, ?)',
+                                (args[0], strdate, strtime, ctx.message.author.id))
+                    await ctx.send("Scheduled {} on {} at {}".format(args[0], args[1], args[2]))
                 except sqlite3.IntegrityError as ex:
                     await ctx.send("Event **{}** already exists!".format(args[0]))
                     if config['debug_mode'] == True:
                         await ctx.send("*DEBUG*: {}".format(ex))
             con.commit()
-        #print(strdate[:2] + '/' + strdate[2:4] + '/' + strdate[4:8])
+        # print(strdate[:2] + '/' + strdate[2:4] + '/' + strdate[4:8])
 
     @commands.command(name="event_search")
     async def event_search(self, ctx, *args):
@@ -129,22 +131,24 @@ class scheduler(commands.Cog, name="scheduler"):
                 looprun = False
                 for row in cur.execute("select * from sessions"):
                     looprun = True
-                    strdate = row[1][:2] + '/' + row[1][2:4] + '/' + row[1][4:8]
+                    strdate = row[1][:2] + '/' + \
+                        row[1][2:4] + '/' + row[1][4:8]
                     strtime = row[2][:2] + ':' + row[2][2:4]
-                    await ctx.send("{}. Event **{}** scheduled on **{}** at **{}**".format(counter, row[0], strdate, strtime))
+                    await ctx.send("{}. Event **{}** scheduled on **{}** at **{}** by **{}**".format(counter, row[0], strdate, strtime, ctx.guild.get_member(int(row[3])).display_name))
                     counter += 1
-                if looprun == False:
+                if looprun is False:
                     await ctx.send("There are no scheduled events")
             else:
                 counter = 1
                 looprun = False
                 for row in cur.execute("select * from sessions where session_name like ?", (args[0],)):
                     looprun = True
-                    strdate = row[1][:2] + '/' + row[1][2:4] + '/' + row[1][4:8]
+                    strdate = row[1][:2] + '/' + \
+                        row[1][2:4] + '/' + row[1][4:8]
                     strtime = row[2][:2] + ':' + row[2][2:4]
-                    await ctx.send("{}. Event **{}** scheduled on **{}** at **{}**".format(counter, row[0], strdate, strtime))
+                    await ctx.send("{}. Event **{}** scheduled on **{}** at **{}** by **{}**".format(counter, row[0], strdate, strtime,  ctx.guild.get_member(int(row[3])).display_name))
                     counter += 1
-                if looprun == False:
+                if looprun is False:
                     await ctx.send("Your search returned no results")
 
     @commands.command(name="edit_event")
@@ -159,7 +163,8 @@ class scheduler(commands.Cog, name="scheduler"):
             await ctx.send("Syntax: $edit_event EventNameToEdit Name/Time/Date NewValue\nIf the name has a space be sure to use \"quotes\"\nE.g. $edit_event Event1 Time 15:00")
         elif arglower == 'name':
             try:
-                cur.execute('update sessions set session_name = ? where session_name = ?', (args[2], args[0]))
+                cur.execute(
+                    'update sessions set session_name = ? where session_name = ?', (args[2], args[0]))
                 con.commit()
                 await ctx.send("Event has been updated! Run **$event_search \"{}\"** to check".format(args[2]))
             except:
@@ -169,24 +174,25 @@ class scheduler(commands.Cog, name="scheduler"):
                 if not args[2][2] == '/' and not args[2][5] == '/':
                     await ctx.send("Date is incorrectly formatted! Format is **DD/MM/YYYY**! {}".format(ctx.message.author.mention))
                 else:
-                    strdate = args[2].replace('/','')
-                    cur.execute('update sessions set session_date = ? where session_name = ?', (strdate, args[0]))
+                    strdate = args[2].replace('/', '')
+                    cur.execute(
+                        'update sessions set session_date = ? where session_name = ?', (strdate, args[0]))
                     con.commit()
                     await ctx.send("Event has been updated! Run **$event_search \"{}\"** to check".format(args[0]))
             except:
-                    await ctx.send("Something went wrong! Sorry :worried:")
+                await ctx.send("Something went wrong! Sorry :worried:")
         elif arglower == 'time':
             try:
                 if not args[2][2] == ':':
                     await ctx.send("Time is incorrectly formatted! Format is **HH:MM** in 24hr format! {}".format(ctx.message.author.mention))
                 else:
-                    strtime = args[2].replace(':','')
-                    cur.execute('update sessions set session_time = ? where session_name = ?', (strtime, args[0]))
+                    strtime = args[2].replace(':', '')
+                    cur.execute(
+                        'update sessions set session_time = ? where session_name = ?', (strtime, args[0]))
                     con.commit()
                     await ctx.send("Event has been updated! Run **$event_search \"{}\"** to check".format(args[0]))
             except:
-                    await ctx.send("Something went wrong! Sorry :worried:")
-
+                await ctx.send("Something went wrong! Sorry :worried:")
 
     @commands.command(name="remove_event")
     @commands.has_role(873031116179800065)
@@ -202,6 +208,7 @@ class scheduler(commands.Cog, name="scheduler"):
             cur.execute('delete from sessions where session_name = ?', (arg,))
             await ctx.send("{} has been removed".format(arg))
         con.commit()
+
 
 def setup(bot):
     bot.add_cog(scheduler(bot))

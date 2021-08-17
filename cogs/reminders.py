@@ -27,8 +27,8 @@ else:
     with open("config.json") as file:
         config = json.load(file)
 
-con = sqlite3.connect('db.db') #open the database
-cur = con.cursor() #cursor object for the db
+con = sqlite3.connect('db.db')  # open the database
+cur = con.cursor()  # cursor object for the db
 
 for row in cur.execute('select * from systemconfig'):
     selectedtz = timezone(row[0])
@@ -37,13 +37,14 @@ fmt = '%Y-%m-%d %H:%M:%S %Z%z'
 timef = '%H:%M:%S'
 datef = '%Y-%m-%d'
 
+
 class reminders(commands.Cog, name="reminders"):
     def __init__(self, bot):
         self.bot = bot
 
-    def time_name_convert(self, timestr, colon = True):
+    def time_name_convert(self, timestr, colon=True):
         hours = timestr[:2]
-        if colon == True:
+        if colon is True:
             minutes = timestr[3:5]
         else:
             minutes = timestr[2:4]
@@ -61,10 +62,11 @@ class reminders(commands.Cog, name="reminders"):
         Manages consent for reminders
         """
         try:
-            value = int(args[0]) #explicit conversion otherwise it sometimes breaks
+            # explicit conversion otherwise it sometimes breaks
+            value = int(args[0])
         except:
-            print("User passed in something that is not an int: {}".format(args[0],))
-
+            print(
+                "User passed in something that is not an int: {}".format(args[0],))
         if not args:
             await context.send("Syntax: $manage_consent ConsentValue\nE.g. $manage_consent 3\n\nConsent values: 0 - no reminders, 1 - dm reminders, 2 - channel reminders, 3 - both reminders")
         elif value < 0 or value > 3:
@@ -73,10 +75,12 @@ class reminders(commands.Cog, name="reminders"):
             looprun = "False"
             for row in cur.execute('select * from reminder_consent where username = ?', (context.message.author.id,)):
                 looprun = "True"
-                cur.execute('update reminder_consent set consent_value = ? where username = ?', (value, context.message.author.id))
+                cur.execute('update reminder_consent set consent_value = ? where username = ?',
+                            (value, context.message.author.id))
                 await context.send("Consent value updated to {}".format(value))
             if looprun == "False":
-                cur.execute('insert into reminder_consent values (?, ?)', (context.message.author.id, value))
+                cur.execute('insert into reminder_consent values (?, ?)',
+                            (context.message.author.id, value))
                 await context.send("Consent value updated to {}".format(value))
             con.commit()
 
@@ -85,8 +89,8 @@ class reminders(commands.Cog, name="reminders"):
         """
         Sets a reminder for an event
         """
-        #players role id 835592255045500958
-        #consent values: 0 - no reminders, 1 - dm reminders, 2 - channel reminders, 3 - both reminders
+        # players role id 835592255045500958
+        # consent values: 0 - no reminders, 1 - dm reminders, 2 - channel reminders, 3 - both reminders
         looprun = "False"
         crowlooprun = "False"
         if not args:
@@ -97,14 +101,16 @@ class reminders(commands.Cog, name="reminders"):
                 if crow[0] != 0:
                     for row in cur.execute('select * from sessions where session_name = ?', (args[0],)):
                         looprun = "True"
-                        strtime = args[1].replace(':','')
-                        cur.execute('insert into personal_reminders values (?, ?, NULL, ?)', (args[0], context.message.author.id, strtime))
+                        strtime = args[1].replace(':', '')
+                        cur.execute('insert into personal_reminders values (?, ?, NULL, ?)',
+                                    (args[0], context.message.author.id, strtime))
                         con.commit()
                         await context.send("You will be reminded {} before the event!".format(self.time_name_convert(args[1], True)))
                 else:
                     await context.send("You have opted out of all reminders, so no reminder was scheduled")
             if crowlooprun == "False":
-                cur.execute('insert into reminder_consent values (?, 3)', (context.message.author.id,))
+                cur.execute('insert into reminder_consent values (?, 3)',
+                            (context.message.author.id,))
                 con.commit()
                 await context.send("You had no consent on record for notifications\nBy default, your consent was recorded for both DM and channel reminders\n\nPlease re-run the reminder command")
             if looprun == "False" and crowlooprun != "False":
@@ -134,16 +140,18 @@ class reminders(commands.Cog, name="reminders"):
         else:
             looprun = "False"
             counter = 1
-            #nested for loops ftw
+            # nested for loops ftw
             for event in args:
                 for row in cur.execute('select * from personal_reminders where session_name = ? and remind_who = ?', (event, context.message.author.id)):
                     looprun = "True"
-                    cur.execute('delete from personal_reminders where session_name = ? and remind_who = ?', (event, context.message.author.id))
+                    cur.execute('delete from personal_reminders where session_name = ? and remind_who = ?', (
+                        event, context.message.author.id))
                     await context.send("{}. Reminders for {} removed!".format(counter, event))
                     counter += 1
                 if looprun == "False":
                     await context.send("No reminders found for {}!".format(event))
             con.commit()
+
 
 def setup(bot):
     bot.add_cog(reminders(bot))

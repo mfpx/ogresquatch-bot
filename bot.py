@@ -11,10 +11,24 @@ import os
 import platform
 import random
 import sys
+import asyncio
+import sqlite3
+from pytz import timezone
 
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
+
+con = sqlite3.connect('db.db')  # open the database
+cur = con.cursor()  # cursor object for the db
+
+for row in cur.execute('select * from systemconfig'):
+    selectedtz = timezone(row[0])
+
+fmt = '%Y-%m-%d %H:%M:%S %Z%z'
+timef = '%H:%M:%S'
+datef = '%Y-%m-%d'
+
 
 if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found! Please add it and try again.")
@@ -53,6 +67,7 @@ intents.members = True
 """
 
 intents = discord.Intents.default()
+intents.members = True
 
 bot = Bot(command_prefix=config["bot_prefix"], intents=intents)
 
@@ -66,14 +81,34 @@ async def on_ready():
     print(f"Running on: {platform.system()} {platform.release()} ({os.name})")
     print("-------------------")
     status_task.start()
+    while True:
+        await asyncio.sleep(600)  # run every 10 minutes
+        await schedtasks()
 
 
 # Setup the game status task of the bot
 @tasks.loop(minutes=1.0)
 async def status_task():
-    statuses = ["with you!", "with Kyle!", "with Miss Feet!", "with Edin's Bar!", "with OneScreen!", f"{config['bot_prefix']}help", "with humans!"]
+    statuses = ["with you!", "with Kyle!", "with Miss Feet!", "with Edin's Bar!",
+                "with OneScreen!", f"{config['bot_prefix']}help", "with humans!"]
     await bot.change_presence(activity=discord.Game(random.choice(statuses)))
 
+
+async def schedtasks():
+    print("Running tasks...\nBot will become unresponsive for a few seconds")
+    channel = bot.get_channel(872632514022342656)
+    await channel.send("hello")
+    """
+    select * from personal_reminders
+    select * from reminder_consent where username = ?
+
+    for reminder in personal_reminders:
+        if consent > 0:
+            send_reminder(user, consent) - this will need to act on the consent value
+
+    this will also need to account for the configured timezone
+    allow the mention of the players role?
+    """
 
 # Removes the default help command of discord.py to be able to create our custom help command.
 bot.remove_command("help")
@@ -147,7 +182,8 @@ async def on_command_error(context, error):
     elif isinstance(error, commands.MissingRole):
         embed = discord.Embed(
             title="Error!",
-            description="You are missing the role {} to execute this command!\nAsk the admins for permission!".format(error.missing_role),
+            description="You are missing the role {} to execute this command!\nAsk the admins for permission!".format(
+                error.missing_role),
             color=0xE02B2B
         )
         await context.send(embed=embed)
