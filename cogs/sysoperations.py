@@ -13,6 +13,7 @@ import sqlite3
 import discord
 import asyncio
 import subprocess
+import psutil
 from discord.ext import commands
 
 # Only if you want to use variables that are in the config.json file.
@@ -22,10 +23,12 @@ else:
     with open("config.json") as file:
         config = json.load(file)
 
-con = sqlite3.connect('db.db') #open the database
-cur = con.cursor() #cursor object for the db
+con = sqlite3.connect('db.db')  # open the database
+cur = con.cursor()  # cursor object for the db
 
 # Here we name the cog and create a new class for the cog.
+
+
 class SystemOperations(commands.Cog, name="operations"):
     def __init__(self, bot):
         self.bot = bot
@@ -77,7 +80,7 @@ class SystemOperations(commands.Cog, name="operations"):
 
     @commands.command(name="purge_msgs")
     @commands.has_role(873031116179800065)
-    async def purge_msgs(self, ctx, amount:int, *, arg:str=None):
+    async def purge_msgs(self, ctx, amount: int, *, arg: str = None):
         """
         Purges channel messages (up to a 100 at a time)
         """
@@ -109,5 +112,7 @@ class SystemOperations(commands.Cog, name="operations"):
             await context.send("Debug mode is not enabled!")
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
+
+
 def setup(bot):
     bot.add_cog(SystemOperations(bot))

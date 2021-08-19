@@ -91,6 +91,7 @@ class reminders(commands.Cog, name="reminders"):
         """
         # players role id 835592255045500958
         # consent values: 0 - no reminders, 1 - dm reminders, 2 - channel reminders, 3 - both reminders
+        # default value 2 for role reminders
         looprun = "False"
         crowlooprun = "False"
         if not args:

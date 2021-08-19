@@ -68,6 +68,7 @@ class scheduler(commands.Cog, name="scheduler"):
         offset = '%z'
         await ctx.send("Timezone is **{}** and the time offset is **{}**".format(timezone, convertedtime.strftime(offset)))
 
+    # current way of timing doesnt account for DST, this needs to be implemented
     @commands.command(name="set_tz")
     @commands.has_role(873031116179800065)
     async def set_tz(self, ctx, arg):
