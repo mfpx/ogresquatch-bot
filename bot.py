@@ -19,6 +19,8 @@ import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 
+token = os.environ['API_KEY']
+
 if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found! Please add it and try again.")
 else:
@@ -204,4 +206,4 @@ async def on_command_error(context, error):
 
 
 # Run the bot with the token
-bot.run(process.env.API_KEY)
+bot.run(token)
