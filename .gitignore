@@ -135,8 +135,8 @@ dmypy.json
 .pytype/
 
 # JSON
-config.json
-blacklist.json
+#config.json
+#blacklist.json
 
 # Cython debug symbols
 cython_debug/

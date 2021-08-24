@@ -1,4 +1,4 @@
-""""
+"""
 Copyright © Krypton 2021 - https://github.com/kkrypt0nn
 Description:
 This is a template to create your own discord bot in python.
@@ -18,6 +18,12 @@ from pytz import timezone
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
+
+if not os.path.isfile("config.json"):
+    sys.exit("'config.json' not found! Please add it and try again.")
+else:
+    with open("config.json") as file:
+        config = json.load(file)
 
 con = sqlite3.connect('db.db')  # open the database
 cur = con.cursor()  # cursor object for the db
@@ -198,4 +204,4 @@ async def on_command_error(context, error):
 
 
 # Run the bot with the token
-bot.run(config["token"])
+bot.run(process.env.API_KEY)
