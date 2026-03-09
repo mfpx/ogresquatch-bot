@@ -175,5 +175,5 @@ class moderation(commands.Cog, name="moderation"):
         await context.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(moderation(bot))
+async def setup(bot):
+    await bot.add_cog(moderation(bot))

@@ -24,6 +24,11 @@ cur = con.cursor()  # cursor object for the db
 
 for row in cur.execute('select * from systemconfig'):
     selectedtz = timezone(row[0])
+    if row[2] != '':
+        reminder_channel = row[2]
+    else:
+        reminder_channel = -1
+    
 
 fmt = '%Y-%m-%d %H:%M:%S %Z%z'
 timef = '%H:%M:%S'
@@ -66,7 +71,7 @@ intents.presences = True
 intents.members = True
 """
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 
 bot = Bot(command_prefix=config["bot_prefix"], intents=intents)
@@ -81,10 +86,19 @@ async def on_ready():
     print(f"Running on: {platform.system()} {platform.release()} ({os.name})")
     print("-------------------")
     status_task.start()
-    while True:
-        await asyncio.sleep(600)  # run every 10 minutes
-        await schedtasks()
+    schedtasks.start()
 
+async def load_extensions():
+    for file in os.listdir("./cogs"):
+        if file.endswith(".py"):
+            extension = file[:-3]
+            try:
+                await bot.load_extension(f"cogs.{extension}")
+                print(f"Loaded extension '{extension}'")
+            except Exception as e:
+                exception = f"{type(e).__name__}: {e}"
+                print(f"Failed to load extension {extension}\n{exception}")
+    print("Loaded all known extensions!\n")
 
 # Setup the game status task of the bot
 @tasks.loop(minutes=1.0)
@@ -93,11 +107,11 @@ async def status_task():
                 "with OneScreen!", f"{config['bot_prefix']}help", "with humans!"]
     await bot.change_presence(activity=discord.Game(random.choice(statuses)))
 
-
+@tasks.loop(minutes=10.0)
 async def schedtasks():
-    print("Running tasks...\nBot will become unresponsive for a few seconds")
-    channel = bot.get_channel(872632514022342656)
-    await channel.send("hello")
+    if reminder_channel != -1:
+        channel = bot.get_channel(reminder_channel)
+        await channel.send("This prints every 10 minutes")
     """
     select * from personal_reminders
     select * from reminder_consent where username = ?
@@ -112,18 +126,6 @@ async def schedtasks():
 
 # Removes the default help command of discord.py to be able to create our custom help command.
 bot.remove_command("help")
-
-if __name__ == "__main__":
-    for file in os.listdir("./cogs"):
-        if file.endswith(".py"):
-            extension = file[:-3]
-            try:
-                bot.load_extension(f"cogs.{extension}")
-                print(f"Loaded extension '{extension}'")
-            except Exception as e:
-                exception = f"{type(e).__name__}: {e}"
-                print(f"Failed to load extension {extension}\n{exception}")
-    print("Loaded all known extensions!\n")
 
 
 # The code in this event is executed every time someone sends a message, with or without the prefix
@@ -196,6 +198,9 @@ async def on_command_error(context, error):
         await context.message.author.send(embed=embed)
     raise error
 
+async def main():
+    async with bot:
+        await load_extensions()
+        await bot.start(config["token"])
 
-# Run the bot with the token
-bot.run(config["token"])
+asyncio.run(main())

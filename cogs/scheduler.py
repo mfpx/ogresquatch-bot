@@ -42,6 +42,23 @@ class scheduler(commands.Cog, name="scheduler"):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(name="set_reminder_channel")
+    @commands.has_role(config["admin_role_id"])
+    async def set_reminder_channel(self, ctx, arg):
+        """
+        Sets the channel where the bot will post reminders
+        """
+        channel = discord.utils.find(lambda c: c.name == arg, ctx.guild.channels)
+        print(channel)
+        if channel is not None:
+            if config['debug_mode'] == True:
+                await ctx.send(f"Channel name is {channel.name} and ID is {channel.id}")
+            cur.execute('update systemconfig set reminder_channel = ?', (channel.id,))
+            con.commit()
+            await ctx.send(f"Set reminder channel to **{channel.name}**")
+        else:
+            await ctx.send(f"Channel with name **{arg}** not found on this server!")
+
     @commands.command(name="get_td")
     async def get_td(self, ctx):
         """
@@ -70,7 +87,7 @@ class scheduler(commands.Cog, name="scheduler"):
 
     # current way of timing doesnt account for DST, this needs to be implemented
     @commands.command(name="set_tz")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def set_tz(self, ctx, arg):
         """
         Changes the bot timezone
@@ -89,7 +106,7 @@ class scheduler(commands.Cog, name="scheduler"):
             await ctx.send("Unknown timezone given\nSee https://www.iana.org/time-zones for an up-to-date list!")
 
     @commands.command(name="schedule_event")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def schedule_event(self, ctx, *args):
         """
         Schedules an event
@@ -153,7 +170,7 @@ class scheduler(commands.Cog, name="scheduler"):
                     await ctx.send("Your search returned no results")
 
     @commands.command(name="edit_event")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def edit_event(self, ctx, *args):
         """
         Edits a scheduled event
@@ -196,7 +213,7 @@ class scheduler(commands.Cog, name="scheduler"):
                 await ctx.send("Something went wrong! Sorry :worried:")
 
     @commands.command(name="remove_event")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def remove_event(self, ctx, arg):
         """
         Removes any scheduled event
@@ -211,5 +228,5 @@ class scheduler(commands.Cog, name="scheduler"):
         con.commit()
 
 
-def setup(bot):
-    bot.add_cog(scheduler(bot))
+async def setup(bot):
+    await bot.add_cog(scheduler(bot))

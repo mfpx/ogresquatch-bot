@@ -27,14 +27,12 @@ con = sqlite3.connect('db.db')  # open the database
 cur = con.cursor()  # cursor object for the db
 
 # Here we name the cog and create a new class for the cog.
-
-
 class SystemOperations(commands.Cog, name="operations"):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command(name="return_db")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def return_db(self, context):
         """
         Returns the database schema
@@ -46,7 +44,7 @@ class SystemOperations(commands.Cog, name="operations"):
             await context.send("Debug mode is not enabled!")
 
     @commands.command(name="get_conf")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def get_conf(self, context):
         """
         Returns bot configuration from systemconfig table
@@ -62,7 +60,7 @@ class SystemOperations(commands.Cog, name="operations"):
             await context.send("Debug mode is not enabled!")
 
     @commands.command(name="dm_debug")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def dm(self, ctx, *, message=None):
         """
         Sends a DM to the person using the command
@@ -71,7 +69,7 @@ class SystemOperations(commands.Cog, name="operations"):
         await ctx.message.author.send(message)
 
     @commands.command(name="sysmem")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def sysmem(self, context):
         """
         Returns system memory usage
@@ -79,7 +77,7 @@ class SystemOperations(commands.Cog, name="operations"):
         await context.send(f"Memory :{psutil.virtual_memory()}")
 
     @commands.command(name="purge_msgs")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def purge_msgs(self, ctx, amount: int, *, arg: str = None):
         """
         Purges channel messages (up to a 100 at a time)
@@ -98,7 +96,7 @@ class SystemOperations(commands.Cog, name="operations"):
         await botMessage.delete()
 
     @commands.command(name="exec_sql")
-    @commands.has_role(873031116179800065)
+    @commands.has_role(config["admin_role_id"])
     async def exec_sql(self, context, *, arg):
         """
         Executes raw sql statements on the database
@@ -112,7 +110,5 @@ class SystemOperations(commands.Cog, name="operations"):
             await context.send("Debug mode is not enabled!")
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
-
-
-def setup(bot):
-    bot.add_cog(SystemOperations(bot))
+async def setup(bot):
+    await bot.add_cog(SystemOperations(bot))

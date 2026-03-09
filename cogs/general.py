@@ -41,7 +41,7 @@ class general(commands.Cog, name="general"):
         )
         embed.add_field(
             name="Owner:",
-            value="Pleb#6969",
+            value="genericpleb",
             inline=True
         )
         embed.add_field(
@@ -209,5 +209,5 @@ class general(commands.Cog, name="general"):
             await context.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(general(bot))
+async def setup(bot):
+    await bot.add_cog(general(bot))

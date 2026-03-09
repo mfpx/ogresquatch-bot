@@ -121,5 +121,5 @@ class Fun(commands.Cog, name="fun"):
             await choose_message.edit(embed=timeout_embed)
 
 
-def setup(bot):
-    bot.add_cog(Fun(bot))
+async def setup(bot):
+    await bot.add_cog(Fun(bot))
